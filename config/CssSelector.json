@@ -1,0 +1,5 @@
+{
+  "writeCenterCard": "div[aria-label='创作中心卡片']",
+  "pageBar": "div[class='Pagination']",
+  "pageCount": "button[class='Button PaginationButton Button--plain']"
+}
