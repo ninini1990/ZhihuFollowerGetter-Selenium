@@ -1,7 +1,7 @@
 {
     "zhihuUserId": "nidaye2",
-    "minDelayTime": "1",
-    "maxDelayTime": "3",
+    "minDelayTime": "5",
+    "maxDelayTime": "10",
     "browserIp": "127.0.0.1",
     "browserPort": "13131"
 }
