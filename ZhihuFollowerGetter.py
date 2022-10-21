@@ -25,11 +25,16 @@ zhihuUserId = userOptions['zhihuUserId']
 #启动浏览器
 launchBrowser()
 
-#登录时间
-print('等待用户人工登录自己的知乎账户，限时两分钟')
+# 执行提示
+print('============开始执行============')
+print('===!!! 注意：config文件夹下，userOption.json中的"zhihuUserId"，必须先修改成自己的知乎用户ID!!!===')
+
+# 登录时间
+print('请在弹出的浏览器窗口中，手工登录自己的知乎账户，此处固定等待两分钟...')
+print('如果已经是自己账户已登录的状态，则无需操作。等待执行即可。')
 time.sleep(120)
 
-#初始化浏览器
+# 初始化浏览器
 print('开始初始化浏览器...')
 
 opts = getBrowserOptions()
@@ -65,7 +70,7 @@ def checkLink(browser):
 
         # 获取该页面类型要检查的全部链接
         print("开始获取页面中的链接...")
-        # while(pageNum <= 5):
+        # while(pageNum <= 2):
         while(pageNum <= pageCount):
             print('页数: ', pageNum)
         # 拼接页面URL并打开对应页面
@@ -107,24 +112,33 @@ def checkLink(browser):
                 #     follower = spanNodes[-1].text
 
                 followerNode = item.find_element(By.CSS_SELECTOR, 'div[class="ContentItem"]')
-                dataStr = followerNode.get_attribute('data-za-extra-module')
-                dataDict = json.loads(dataStr)
-                follower = dataDict['card']['content']['follower_num']
+                follower = 0
+
+                # 有时关注者信息的JSON解析会出错，做一下异常处理. 异常时赋值为 -1
+                try:
+                    dataStr = followerNode.get_attribute('data-za-extra-module')
+                    dataDict = json.loads(dataStr)
+                    follower = dataDict['card']['content']['follower_num']
+                except Exception as e:
+                    follower = -1
+                    print('当前关注者JSON处理出错，继续下一个:', e)
 
                 temp = {'pageNum': str(pageNum), 'link': link, 'userName': userName, 'follower': follower, 'status': status}
+                # print(temp)
                 allLinkList.append(temp)
+
             pageNum = pageNum + 1
 
         # 按关注者数量降序排列
         allLinkList.sort(key=lambda item: item['follower'], reverse=True)
         # 生成结果
-        print('正在生成结果...共：', len(allLinkList))
+        print('正在生成结果...总数量：', len(allLinkList))
         stylePath = '\"' + __file__ + "\\..\\scripts\\style.css" + '\"'
 
         # 组装html
-        htmlHeader = '<!DOCTYPE html><html lang="cn"><head><meta charset="utf-8"><title> 结果 </title><link rel="stylesheet" href=' + stylePath +'></head><body>'
+        htmlHeader = '<!DOCTYPE html><html lang="cn"><head><meta charset="utf-8"><title> 统计结果 </title><link rel="stylesheet" href=' + stylePath +'></head><body>'
 
-        summary = '<div><b>关注者数量:' + str(len(allLinkList)) + ' - 检查结果</b><table class="hovertable">'
+        summary = '<p><div><b> 关注者总数量: ' + str(len(allLinkList)) + '</b><p><div><b>注：如显示为 -1 表示获取数据异常，不代表真实数据。</b></div><p><table class="hovertable">'
 
         table = '<th>所属页码</th><th>用户</th><th>关注者数量</th><th>互关状态</th>'
 
@@ -145,19 +159,20 @@ def checkLink(browser):
             f = open(reportFilePath, 'w', encoding="utf-8")
             f.write(reportPage)
             f.close()
-            print("生成报告文件成功:  {0}".format(reportFilePath))
+            print("生成结果文件成功:  {0}".format(reportFilePath))
+            print('============关注者信息统计完成,请查看报告文件============')
             return reportFilePath
         except Exception as e:
-            print(e, "生成报告文件失败")
+            print("生成结果文件失败", e)
 
     except Exception as e:
-            print(e, "错误.")
+        print("发生错误：", e)
+
     finally:
-        print('------ 当前页面项检查完成 ------')
         input('按回车键退出...')
 
 
-# 执行
+# 执行入口
 checkLink(browser)
 
 
